@@ -1,11 +1,55 @@
 <div id="app"></div>
 
 <script>
-  const h = (tag, props, children) => {};
+  // My example at recreating render and mounting functions
 
-  const mount = (vnode, container) => {};
+  /*
+   * Render function
+   * generates the DOM tree
+   */
+  const h = (tag, props, children) => {
+    return {
+      tag,
+      props,
+      children,
+    };
+  };
 
-  const vdom = h('div', { class: 'red' }, h('span', null, ['hello']));
+  // mounts the dom to the app node
+  const mount = (vnode, container) => {
+    // creates new node
+    const element = document.createElement(vnode.tag);
 
+    // if any, props are added to the new node
+    if (vnode.props) {
+      for (let prop in vnode.props) {
+        element.setAttribute(prop, vnode.props[prop]);
+      }
+    }
+
+    // if any, children are added to the node
+    if (vnode.children) {
+      // if children is text, add to innerText of node
+      if (typeof vnode.children === 'string') {
+        element.innerText = vnode.children;
+      } else {
+        // if children is an array, recursively add every nested node
+        for (let i = 0; i < vnode.children.length; i++) {
+          mount(vnode.children[i], element);
+        }
+      }
+    }
+
+    // mounts node to root node
+    container.appendChild(element);
+  };
+
+  const vdom = h('div', { class: 'red' }, [h('span', null, 'hello')]);
+  /**
+   * result
+   * <div id="app">
+   *   <div class="red">hello</div>
+   * </div>
+   */
   mount(vdom, document.getElementById('app'));
 </script>
