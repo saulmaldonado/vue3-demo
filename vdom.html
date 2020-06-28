@@ -18,7 +18,7 @@
   // mounts the dom to the app node
   const mount = (vnode, container) => {
     // creates new node
-    const element = document.createElement(vnode.tag);
+    const element = (vnode.el = document.createElement(vnode.tag));
 
     // if any, props are added to the new node
     if (vnode.props) {
@@ -44,12 +44,20 @@
     container.appendChild(element);
   };
 
-  const vdom = h('div', { class: 'red' }, [h('span', null, 'hello')]);
+  const vdom1 = h('div', { class: 'red' }, [h('span', null, 'hello')]);
   /**
    * result
    * <div id="app">
    *   <div class="red">hello</div>
    * </div>
    */
-  mount(vdom, document.getElementById('app'));
+  mount(vdom1, document.getElementById('app'));
+
+  //create function that will compare and the two tree and make the changes needed
+  function patch(n1, n2) {}
+
+  const vdom2 = h('div', { class: 'red' }, [h('span', null, 'changed!')]);
+
+  patch(vdom1, vdom2);
+  // should change the inner text from 'hello' to 'changed!'
 </script>
