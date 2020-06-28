@@ -2,16 +2,63 @@
 
 <!-- <script type="module" src="./build/index.js"></script> -->
 <script>
-  class Dep {}
+  /**
+   * global variable for storing the
+   * subscriber, or function, that will subscribe to notify()
+   */
+  let activeEffect = null;
 
-  function watchEffect(effect) {}
+  class Dep {
+    /**
+     *  a set of subscribers, or functions, that will be run
+     *  when the notify method is invoked
+     */
+    subscribers = new Set();
+
+    /**
+     *  Add the current activeEffect to the list
+     *  of subscribers if there is an effect waiting to be added
+     */
+    depend() {
+      if (activeEffect) {
+        this.subscribers.add(activeEffect);
+      }
+    }
+
+    /**
+     *  All subscribers are invoked
+     */
+    notify() {
+      console.log('notify run');
+
+      this.subscribers.forEach((s) => {
+        s();
+      });
+    }
+  }
+
+  /**
+   * The effect is added placed into a global variable for
+   * the depend method to use. Once added the effect function
+   * if invoked and depend() method adds it to the list of subscribers.
+   * activeEffect is emptied.
+   */
+  function watchEffect(effect) {
+    activeEffect = effect;
+    effect();
+    activeEffect = null;
+  }
 
   const dep = new Dep();
 
+  // add the first subscriber
   watchEffect(() => {
     dep.depend();
     console.log('effect run');
   }); //effect run
 
-  dep.notify(); //effect
+  //notify subscribers
+  dep.notify(); // effect run
+
+  //'effect run' should be invoked twice
 </script>
