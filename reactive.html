@@ -1,0 +1,94 @@
+<script>
+  //global activeEffect cache
+  let activeEffect = null;
+
+  /**
+   * reuse Dep class
+   */
+  class Dep {
+    subscribers = new Set();
+    depend() {
+      if (activeEffect) {
+        this.subscribers.add(activeEffect);
+      }
+    }
+
+    notify() {
+      this.subscribers.forEach((s) => {
+        s();
+      });
+    }
+  }
+
+  /**
+   * Create map to store all deps for any target
+   * WeakMap is used to garbage collect the value (deps)
+   * whenever the depMap is set to null or unaccessible
+   */
+  const targetMap = new WeakMap();
+
+  /**
+   * Returns the dep for a key in a target,
+   * If the dep, or the target is non-existent
+   * in memory, the object is created
+   */
+  const getDep = (target, key) => {
+    let depsMap = targetMap.get(target);
+
+    if (!depsMap) {
+      depsMap = new Map();
+      targetMap.set(target, depsMap);
+    }
+    let dep = depsMap.get(key);
+
+    if (!dep) {
+      dep = new Dep();
+      depsMap.set(key, dep);
+    }
+    return dep;
+  };
+
+  const handlers = {
+    get(target, key, receiver) {
+      let dep = getDep(target, key);
+      // if watchEffect is used, the subscriber will be set to the dep of the key
+      dep.depend();
+      // return the value from target (state). If not set from before, it will be undefined
+      return Reflect.get(target, key, receiver);
+    },
+
+    set(target, key, value, receiver) {
+      let dep = getDep(target, key);
+      // sets the new value of the key
+      const result = Reflect.set(target, key, value, receiver);
+      // notifies all subscribes of change
+      dep.notify();
+      // Reflect.set return a boolean indicating when the property was set successfully
+      return result;
+    },
+  };
+  const reactive = (state) => {
+    /**
+     *  Proxies accessor have the ability detect new
+     *  properties and add them
+     */
+    return new Proxy(state, handlers);
+  };
+  const watchEffect = (effect) => {
+    activeEffect = effect;
+    effect();
+    activeEffect = null;
+  };
+
+  const state = reactive({
+    count: 0,
+  });
+
+  watchEffect(() => {
+    console.log(state.count);
+    console.log(state.count2);
+  }); // 0
+  state.count2 = 5;
+
+  state.count++; // 1
+</script>
