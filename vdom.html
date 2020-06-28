@@ -10,10 +10,33 @@
 
   class Dep {
     /**
+     * Will take the initial value of state
+     * this state can be changed
+     */
+    constructor(initialValue) {
+      this._state = initialValue;
+      this.subscribers = new Set();
+    }
+
+    /**
+     * getter and setter will automatically invoke the
+     * depend and notify methods when used. This is refactoring
+     * The the function in watch effect and the notify
+     * method after changing state
+     */
+    get state() {
+      this.depend();
+      return this._state;
+    }
+
+    set state(newState) {
+      this._state = newState;
+      this.notify();
+    }
+    /**
      *  a set of subscribers, or functions, that will be run
      *  when the notify method is invoked
      */
-    subscribers = new Set();
 
     /**
      *  Add the current activeEffect to the list
@@ -29,8 +52,6 @@
      *  All subscribers are invoked
      */
     notify() {
-      console.log('notify run');
-
       this.subscribers.forEach((s) => {
         s();
       });
@@ -49,16 +70,24 @@
     activeEffect = null;
   }
 
-  const dep = new Dep();
+  const dep = new Dep('initial');
 
   // add the first subscriber
   watchEffect(() => {
-    dep.depend();
-    console.log('effect run');
-  }); //effect run
+    /**
+     * When get state is used all, the current function is added
+     * to the list of subscribers the Dep class
+     */
+    console.log(dep.state);
+  }); // 'initial'
 
-  //notify subscribers
-  dep.notify(); // effect run
+  /**
+   * When the setter for state is used, the
+   * state in Deps is changed and all
+   * subscribers are notified
+   */
 
-  //'effect run' should be invoked twice
+  dep.state = 'changed!';
+
+  //'initial' and then 'changed!' should be logged
 </script>
