@@ -84,6 +84,10 @@
     count: 0,
   });
 
+  /**
+   * Every property of state, existent or not, will be added
+   * to deps of state.
+   */
   watchEffect(() => {
     console.log(state.count);
     console.log(state.count2);
